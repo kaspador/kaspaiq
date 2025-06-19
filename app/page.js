@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import axios from "axios";
 import Confetti from "react-confetti";
+import html2canvas from "html2canvas";
 
 const KASPA_ADDRESS = "kaspa:qpv57800e5e4ejlxch6gpy02kfscj8a0gna8xkc6nw2g93els7mrsyufrfnjq";
 const API_URL = `https://api.kaspa.org/addresses/${encodeURIComponent(KASPA_ADDRESS)}/balance`;
@@ -16,6 +17,8 @@ export default function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [newTxs, setNewTxs] = useState([]);
   const intervalRef = useRef(null);
+  const certificateRef = useRef(null);
+  const [lastAmount, setLastAmount] = useState(null);
 
   const checkBalance = async () => {
     setStatus(1);
@@ -72,6 +75,7 @@ export default function Home() {
           setNewTxs(detectedTxs);
           // Sum all new received amounts
           const totalReceived = detectedTxs.reduce((sum, tx) => sum + tx.amount, 0);
+          setLastAmount(totalReceived);
           if (totalReceived < 10) setResult("Your IQ is <100");
           else setResult("Your IQ is 0");
           found = true;
@@ -88,9 +92,20 @@ export default function Home() {
     if (!found) {
       setResult("Nothing has been received, your IQ is >100");
       setShowConfetti(true);
+      setLastAmount(null);
     }
     setStatus(2);
     setTimer(30);
+  };
+
+  // Download certificate as image
+  const downloadCertificate = async () => {
+    if (!certificateRef.current) return;
+    const canvas = await html2canvas(certificateRef.current);
+    const link = document.createElement("a");
+    link.download = "kaspa-iq-certificate.png";
+    link.href = canvas.toDataURL();
+    link.click();
   };
 
   return (
@@ -131,7 +146,38 @@ export default function Home() {
           I've sent $kas
         </button>
       </div>
-      {result && <p className="result">{result}</p>}
+      {result && (
+        <>
+          <div ref={certificateRef} className="certificate-card">
+            <img src="/kaspaiq-preview.png" alt="Kaspa Logo" style={{ width: 80, marginBottom: 12 }} />
+            <h2>Kaspa IQ Certificate</h2>
+            <p>Your IQ: <b>{result}</b></p>
+            {lastAmount !== null && <p>Sent Amount: <b>{lastAmount} KAS</b></p>}
+            <p style={{ fontSize: 12, color: '#888' }}>{KASPA_ADDRESS}</p>
+          </div>
+          <div className="certificate-actions">
+            <button onClick={downloadCertificate} className="check-btn">Download Certificate</button>
+            <a
+              className="check-btn"
+              style={{ textDecoration: 'none', display: 'inline-block', marginLeft: 8 }}
+              href={`https://twitter.com/intent/tweet?text=I%20just%20tested%20my%20Kaspa%20IQ%20at%20Kaspaiq.com%20and%20got%20${encodeURIComponent(result)}!%20Try%20it%20yourself%3A%20https%3A%2F%2Fkaspaiq.com`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Share on X
+            </a>
+            <a
+              className="check-btn"
+              style={{ textDecoration: 'none', display: 'inline-block', marginLeft: 8 }}
+              href={`https://t.me/share/url?url=https://kaspaiq.com&text=I just tested my Kaspa IQ at Kaspaiq.com and got ${encodeURIComponent(result)}!`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Share on Telegram
+            </a>
+          </div>
+        </>
+      )}
       {error && <p className="error">{error}</p>}
       {newTxs.length > 0 && (
         <div className="tx-list">

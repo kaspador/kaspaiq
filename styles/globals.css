@@ -103,4 +103,31 @@ h1 {
   min-width: 48px;
   transition: color 0.2s, border 0.2s;
   margin-left: 0;
+}
+.certificate-card {
+  background: #231F20;
+  border: 2px solid #49EACB;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #0008;
+  padding: 24px 16px 16px 16px;
+  margin: 24px auto 8px auto;
+  max-width: 340px;
+  text-align: center;
+  color: #70C7BA;
+}
+.certificate-card h2 {
+  font-family: 'Rubik', Arial, sans-serif;
+  color: #49EACB;
+  margin-bottom: 8px;
+}
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.certificate-actions .check-btn {
+  min-width: 160px;
+  margin: 0;
 } 
