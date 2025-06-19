@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import axios from "axios";
 import Confetti from "react-confetti";
@@ -19,6 +19,7 @@ export default function Home() {
   const intervalRef = useRef(null);
   const certificateRef = useRef(null);
   const [lastAmount, setLastAmount] = useState(null);
+  const [recentTxs, setRecentTxs] = useState([]);
 
   const checkBalance = async () => {
     setStatus(1);
@@ -108,6 +109,45 @@ export default function Home() {
     link.click();
   };
 
+  // Live feed: fetch recent transactions every 10 seconds
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRecent = async () => {
+      try {
+        const res = await axios.get(TX_API_URL);
+        const txs = res.data;
+        // For each tx, get received outputs to our address
+        const receivedTxs = txs.map(tx => {
+          const receivedOutputs = (tx.outputs || []).filter(
+            out => out.script_public_key_address === KASPA_ADDRESS
+          );
+          const amount = receivedOutputs.reduce((sum, out) => sum + Number(out.amount) / 1e8, 0);
+          if (amount > 0) {
+            return {
+              txid: tx.transaction_id,
+              amount,
+              sender:
+                tx.inputs && tx.inputs.length > 0 && tx.inputs[0].previous_outpoint_address
+                  ? tx.inputs[0].previous_outpoint_address
+                  : 'unknown',
+              time: tx.block_time ? new Date(Number(tx.block_time)).toLocaleString() : 'unknown',
+            };
+          }
+          return null;
+        }).filter(Boolean);
+        if (isMounted) setRecentTxs(receivedTxs.slice(0, 10));
+      } catch (e) {
+        // ignore errors for live feed
+      }
+    };
+    fetchRecent();
+    const interval = setInterval(fetchRecent, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <main className="container">
       <h1>Kaspaiq.com</h1>
@@ -194,6 +234,20 @@ export default function Home() {
         </div>
       )}
       <footer className="disclaimer">This app is for entertainment purposes only.</footer>
+      {recentTxs.length > 0 && (
+        <div className="tx-list" style={{marginTop: 32}}>
+          <h3 style={{color: '#49EACB'}}>Recent Transactions</h3>
+          <ul>
+            {recentTxs.map(tx => (
+              <li key={tx.txid} style={{marginBottom: 8, fontSize: 15}}>
+                <b>Amount:</b> {tx.amount} KAS | <b>From:</b> {tx.sender} <br/>
+                <b>Time:</b> {tx.time} <br/>
+                <b>TxID:</b> <a href={`https://explorer.kaspa.org/txs/${tx.txid}`} target="_blank" rel="noopener noreferrer">{tx.txid.slice(0,12)}...</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </main>
   );
 } 

@@ -130,4 +130,50 @@ h1 {
 .certificate-actions .check-btn {
   min-width: 160px;
   margin: 0;
+}
+.tx-list {
+  background: #231F20;
+  border: 2px solid #49EACB;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #0008;
+  padding: 20px 18px 12px 18px;
+  margin: 32px auto 0 auto;
+  max-width: 420px;
+  color: #70C7BA;
+}
+.tx-list h3 {
+  font-family: 'Rubik', Arial, sans-serif;
+  color: #49EACB;
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+}
+.tx-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tx-list li {
+  background: #1b263b;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: #70C7BA;
+  box-shadow: 0 2px 8px #0003;
+  transition: background 0.2s;
+}
+.tx-list li:hover {
+  background: #2d3e50;
+}
+.tx-list a {
+  color: #49EACB;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.tx-list a:hover {
+  color: #70C7BA;
+}
+.tx-list b {
+  color: #B6B6B6;
+  font-weight: 700;
 } 
