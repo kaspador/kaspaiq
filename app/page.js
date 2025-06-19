@@ -20,6 +20,10 @@ export default function Home() {
   const certificateRef = useRef(null);
   const [lastAmount, setLastAmount] = useState(null);
   const [recentTxs, setRecentTxs] = useState([]);
+  const [copied, setCopied] = useState(false);
+  const [kasPrice, setKasPrice] = useState({ usd: null, eur: null, btc: null });
+  const [theme, setTheme] = useState('dark');
+  const [nickname, setNickname] = useState("");
 
   const checkBalance = async () => {
     setStatus(1);
@@ -68,6 +72,7 @@ export default function Home() {
                   tx.inputs && tx.inputs.length > 0 && tx.inputs[0].previous_outpoint_address
                     ? tx.inputs[0].previous_outpoint_address
                     : 'unknown',
+                nickname: nickname || 'Anonymous',
               }
             : null;
         }).filter(Boolean);
@@ -131,6 +136,7 @@ export default function Home() {
                   ? tx.inputs[0].previous_outpoint_address
                   : 'unknown',
               time: tx.block_time ? new Date(Number(tx.block_time)).toLocaleString() : 'unknown',
+              nickname: nickname || 'Anonymous',
             };
           }
           return null;
@@ -147,6 +153,31 @@ export default function Home() {
       clearInterval(interval);
     };
   }, []);
+
+  // Copy address to clipboard
+  const copyAddress = () => {
+    navigator.clipboard.writeText(KASPA_ADDRESS);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
+
+  // Fetch Kaspa price every 60s
+  useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const res = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd,eur,btc');
+        setKasPrice(res.data.kaspa);
+      } catch {}
+    };
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Theme toggle
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+  }, [theme]);
 
   return (
     <main className="container">
@@ -180,6 +211,28 @@ export default function Home() {
         )}
         {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={300} />}
         <p className="address">{KASPA_ADDRESS}</p>
+        <button className="copy-btn" onClick={copyAddress} style={{marginTop: 8}}>
+          {copied ? 'Copied!' : 'Copy Address'}
+        </button>
+      </div>
+      <div className="kaspa-price-widget">
+        <span>KAS Price:</span>
+        <span>USD: {kasPrice.usd ? `$${kasPrice.usd}` : '...'}</span>
+        <span>EUR: {kasPrice.eur ? `€${kasPrice.eur}` : '...'}</span>
+        <span>BTC: {kasPrice.btc ? Number(kasPrice.btc).toFixed(8) : '...'} BTC</span>
+      </div>
+      <div className="nickname-row">
+        <input
+          className="nickname-input"
+          type="text"
+          placeholder="Enter your nickname (optional)"
+          value={nickname}
+          onChange={e => setNickname(e.target.value)}
+          maxLength={20}
+        />
+        <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+          {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+        </button>
       </div>
       <div className="button-timer-row">
         <button className="check-btn" onClick={checkBalance} disabled={status === 1}>
@@ -193,6 +246,7 @@ export default function Home() {
             <h2>Kaspa IQ Certificate</h2>
             <p>Your IQ: <b>{result}</b></p>
             {lastAmount !== null && <p>Sent Amount: <b>{lastAmount} KAS</b></p>}
+            <p>Nickname: <b>{nickname || 'Anonymous'}</b></p>
             <p style={{ fontSize: 12, color: '#888' }}>{KASPA_ADDRESS}</p>
           </div>
           <div className="certificate-actions">
@@ -241,6 +295,7 @@ export default function Home() {
             {recentTxs.map(tx => (
               <li key={tx.txid} style={{marginBottom: 8, fontSize: 15}}>
                 <b>Amount:</b> {tx.amount} KAS | <b>From:</b> {tx.sender} <br/>
+                <b>Nickname:</b> {tx.nickname || 'Anonymous'} <br/>
                 <b>Time:</b> {tx.time} <br/>
                 <b>TxID:</b> <a href={`https://explorer.kaspa.org/txs/${tx.txid}`} target="_blank" rel="noopener noreferrer">{tx.txid.slice(0,12)}...</a>
               </li>

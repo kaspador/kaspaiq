@@ -176,4 +176,93 @@ h1 {
 .tx-list b {
   color: #B6B6B6;
   font-weight: 700;
+}
+.copy-btn {
+  background: #49EACB;
+  color: #231F20;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-family: 'Oswald', Arial, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+.copy-btn:active, .copy-btn:focus {
+  background: #70C7BA;
+  color: #231F20;
+}
+.kaspa-price-widget {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  background: #1b263b;
+  border-radius: 10px;
+  margin: 18px auto 8px auto;
+  padding: 10px 16px;
+  font-size: 1rem;
+  color: #70C7BA;
+  max-width: 420px;
+  box-shadow: 0 2px 8px #0003;
+}
+.kaspa-price-widget span {
+  font-family: 'Oswald', Arial, sans-serif;
+}
+.nickname-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 18px 0;
+}
+.nickname-input {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid #49EACB;
+  font-size: 1rem;
+  font-family: 'Lato', Arial, sans-serif;
+  background: #231F20;
+  color: #70C7BA;
+  outline: none;
+  transition: border 0.2s;
+}
+.nickname-input:focus {
+  border: 2px solid #70C7BA;
+}
+.theme-toggle {
+  background: #49EACB;
+  color: #231F20;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  font-family: 'Oswald', Arial, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.theme-toggle:active, .theme-toggle:focus {
+  background: #70C7BA;
+  color: #231F20;
+}
+[data-theme='light'] body, [data-theme='light'] .container, [data-theme='light'] .certificate-card, [data-theme='light'] .tx-list {
+  background: #fff !important;
+  color: #231F20 !important;
+}
+[data-theme='light'] .kaspa-price-widget, [data-theme='light'] .tx-list li {
+  background: #f2f2f2 !important;
+  color: #231F20 !important;
+}
+[data-theme='light'] .check-btn, [data-theme='light'] .copy-btn, [data-theme='light'] .theme-toggle {
+  background: #231F20 !important;
+  color: #49EACB !important;
+}
+[data-theme='light'] .nickname-input {
+  background: #fff !important;
+  color: #231F20 !important;
+  border: 2px solid #231F20 !important;
 } 
