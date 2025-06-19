@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Kaspaiq.com
 
 A fun Kaspa IQ checker! Send any $kas amount to the displayed address and find out your IQ.
@@ -25,3 +26,7 @@ npm run dev
 ```
 kaspa:qpv57800e5e4ejlxch6gpy02kfscj8a0gna8xkc6nw2g93els7mrsyufrfnjq
 ``` 
+=======
+# kaspaiq
+test your IQ via this simple app
+>>>>>>> 4c51af1a96f2b037a9563a20a413448afcad9e8e
