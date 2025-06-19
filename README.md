@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Kaspaiq.com
 
 A fun Kaspa IQ checker! Send any $kas amount to the displayed address and find out your IQ.
@@ -6,9 +6,7 @@ A fun Kaspa IQ checker! Send any $kas amount to the displayed address and find o
 ## How it works
 - Send any $kas to the provided Kaspa address.
 - Click "I've sent $kas" and the app will check for your transaction.
-- If nothing is received in 45 seconds: "your IQ is >100"
-- If <10 $kas is received: "your IQ is <100"
-- If >=10 $kas is received: "your IQ is 0"
+-
 
 _Disclaimer: This app is for entertainment purposes only._
 
