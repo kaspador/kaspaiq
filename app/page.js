@@ -6,6 +6,7 @@ import Confetti from "react-confetti";
 
 const KASPA_ADDRESS = "kaspa:qpv57800e5e4ejlxch6gpy02kfscj8a0gna8xkc6nw2g93els7mrsyufrfnjq";
 const API_URL = `https://api.kaspa.org/addresses/${encodeURIComponent(KASPA_ADDRESS)}/balance`;
+const TX_API_URL = `https://api.kaspa.org/addresses/${encodeURIComponent(KASPA_ADDRESS)}/full-transactions?limit=100&offset=0&resolve_previous_outpoints=no`;
 
 export default function Home() {
   const [status, setStatus] = useState(0); // 0: idle, 1: checking, 2: result
@@ -13,6 +14,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(30);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [newTxs, setNewTxs] = useState([]);
   const intervalRef = useRef(null);
 
   const checkBalance = async () => {
@@ -21,17 +23,22 @@ export default function Home() {
     setError("");
     setTimer(30);
     setShowConfetti(false);
+    setNewTxs([]);
     let initialBalance = 0;
+    let initialTxIds = [];
     try {
       const res = await axios.get(API_URL);
       initialBalance = Number(res.data.balance) / 1e8;
+      const txRes = await axios.get(TX_API_URL);
+      initialTxIds = txRes.data.map(tx => tx.transaction_id);
     } catch (e) {
-      setError("Error fetching balance. Please try again later.");
+      setError("Error fetching balance or transactions. Please try again later.");
       setStatus(0);
       return;
     }
     let found = false;
     let elapsed = 0;
+    let detectedTxs = [];
     intervalRef.current = setInterval(() => {
       setTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
@@ -39,17 +46,39 @@ export default function Home() {
       await new Promise((r) => setTimeout(r, 3000));
       elapsed += 3;
       try {
-        const res = await axios.get(API_URL);
-        const newBalance = Number(res.data.balance) / 1e8;
-        if (newBalance > initialBalance) {
-          const received = newBalance - initialBalance;
-          if (received < 10) setResult("Your IQ is <100");
+        const txRes = await axios.get(TX_API_URL);
+        const allTxs = txRes.data;
+        // Find new transactions not in initialTxIds
+        const newOnes = allTxs.filter(tx => !initialTxIds.includes(tx.transaction_id));
+        // For each new transaction, check if it has outputs to our address
+        const receivedTxs = newOnes.map(tx => {
+          const receivedOutputs = (tx.outputs || []).filter(
+            out => out.script_public_key_address === KASPA_ADDRESS
+          );
+          const amount = receivedOutputs.reduce((sum, out) => sum + Number(out.amount) / 1e8, 0);
+          return amount > 0
+            ? {
+                txid: tx.transaction_id,
+                amount,
+                sender:
+                  tx.inputs && tx.inputs.length > 0 && tx.inputs[0].previous_outpoint_address
+                    ? tx.inputs[0].previous_outpoint_address
+                    : 'unknown',
+              }
+            : null;
+        }).filter(Boolean);
+        if (receivedTxs.length > 0) {
+          detectedTxs = receivedTxs;
+          setNewTxs(detectedTxs);
+          // Sum all new received amounts
+          const totalReceived = detectedTxs.reduce((sum, tx) => sum + tx.amount, 0);
+          if (totalReceived < 10) setResult("Your IQ is <100");
           else setResult("Your IQ is 0");
           found = true;
           break;
         }
       } catch (e) {
-        setError("Error fetching balance. Please try again later.");
+        setError("Error fetching transactions. Please try again later.");
         setStatus(0);
         clearInterval(intervalRef.current);
         return;
@@ -104,6 +133,20 @@ export default function Home() {
       </div>
       {result && <p className="result">{result}</p>}
       {error && <p className="error">{error}</p>}
+      {newTxs.length > 0 && (
+        <div className="tx-list">
+          <h3>New Transactions:</h3>
+          <ul>
+            {newTxs.map(tx => (
+              <li key={tx.txid} style={{marginBottom: 8}}>
+                <b>Amount:</b> {tx.amount} KAS<br/>
+                <b>Sender:</b> {tx.sender}<br/>
+                <b>TxID:</b> <a href={`https://explorer.kaspa.org/txs/${tx.txid}`} target="_blank" rel="noopener noreferrer">{tx.txid.slice(0,12)}...</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <footer className="disclaimer">This app is for entertainment purposes only.</footer>
     </main>
   );
